@@ -3,6 +3,7 @@ import os
 import discord
 from dotenv import load_dotenv
 from discord.ext.commands import Bot
+import time, socket
 
 
 load_dotenv()
@@ -31,5 +32,16 @@ async def on_voice_state_update(member:discord.Member, before:discord.VoiceState
         print(member.display_name,"has left",V_CHANNEL)
         await member.remove_roles(role)
 
+def connected():
+    try:
+        socket.create_connection(("8.8.8.8", 53))
+        return True
+    except Exception as err:
+        print("Error: {0}".format(err))
+        return False
 
+while not connected():
+    print("Failed to connect, waiting 60 seconds")
+    time.sleep(60)
+    
 client.run(TOKEN)
