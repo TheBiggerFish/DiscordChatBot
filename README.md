@@ -11,5 +11,7 @@ Create *.env* file in directory with following parameters
 
 * DISCORD_TOKEN (bot token)
 * DISCORD_SERVER (server id number)
-* DISCORD_CHANNEL (channel name)
-* DISCORD_ROLE (role to add to users)
+* DISCORD_VOICE_CHANNEL (voice channel id number)
+* DISCORD_TEXT_CHANNEL= (text channel id number)
+* DISCORD_ROLE (role to add to users id number)
+  
