@@ -26,6 +26,9 @@ async def on_ready():
 
 def is_join(before:discord.VoiceState,after:discord.VoiceState) -> bool:
     return before.channel is None and after.channel is not None
+    
+def is_leave(before:discord.VoiceState,after:discord.VoiceState) -> bool:
+    return before.channel is not None and after.channel is None
 
 async def clear_chat():
     text_channel = client.get_channel(T_CHANNEL)
@@ -47,10 +50,11 @@ async def on_voice_state_update(member:discord.Member, before:discord.VoiceState
     if is_join(before,after) and after.channel.id==V_CHANNEL:
         print(member.display_name,"has joined",after.channel.name)
         await member.add_roles(role)
-    elif not is_join(before,after) and before.channel.id==V_CHANNEL:
+    elif is_leave(before,after) and before.channel.id==V_CHANNEL:
         print(member.display_name,"has left",before.channel.name)
         await member.remove_roles(role)
-        await clear_chat()
+        if len(before.channel.voice_states.keys()) == 0:
+            await clear_chat()
 
 
 def connected():
