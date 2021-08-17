@@ -22,7 +22,7 @@ LOGGING_NAME = 'DISCORD_CHAT_BOT'
 
 logger = logging.Logger(LOGGING_NAME)
 handler = logging.handlers.SysLogHandler(address=(LOGGING_HOST,LOGGING_PORT))
-formatter = logging.Formatter(fmt=f'{socket.gethostname()} {{%(name)s}} [%(levelname)s] %(message)s')
+formatter = logging.Formatter(fmt=f'{socket.gethostname()} [%(levelname)s] %(process)s {{%(name)s}} %(message)s')
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
