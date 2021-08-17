@@ -41,7 +41,7 @@ def is_leave(before:discord.VoiceState,after:discord.VoiceState) -> bool:
 
 async def clear_chat():
     text_channel = client.get_channel(T_CHANNEL)
-    if text_channel.last_message_id is None:
+    if not await text_channel.history(limit=1).flatten():
         logger.info('No messages to delete from empty chat channel')
         return
     else:
@@ -49,18 +49,18 @@ async def clear_chat():
     dt = datetime.now() - relativedelta(weeks=2)
     while messages := await text_channel.history(after=dt).flatten():
         await text_channel.delete_messages(messages)
-    async for message in text_channel.history(): 
-        await message.delete()
+    # async for message in text_channel.history(): 
+    #     await message.delete()
     logger.info('All messages deleted')
 
 @client.event
 async def on_voice_state_update(member:discord.Member, before:discord.VoiceState, after:discord.VoiceState):
     role = client.get_guild(GUILD).get_role(ROLE)
     if is_join(before,after) and after.channel.id==V_CHANNEL:
-        logger.info(f'{member.display_name} has joined {after.channel.name}')
+        logger.info(f'User {member.display_name} has joined voice channel {after.channel.name}')
         await member.add_roles(role)
     elif is_leave(before,after) and before.channel.id==V_CHANNEL:
-        logger.info(f'{member.display_name} has left {before.channel.name}')
+        logger.info(f'User {member.display_name} has left voice channel {before.channel.name}')
         await member.remove_roles(role)
         if len(before.channel.voice_states.keys()) == 0:
             await clear_chat()
