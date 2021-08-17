@@ -7,7 +7,7 @@ from discord.ext.commands import Bot
 import time, socket
 from dotenv import load_dotenv
 from datetime import datetime
-from dateutil import relativedelta
+from dateutil.relativedelta import relativedelta
 
 
 load_dotenv()
@@ -16,11 +16,17 @@ GUILD = int(os.getenv('DISCORD_SERVER'))
 T_CHANNEL = int(os.getenv('DISCORD_TEXT_CHANNEL'))
 V_CHANNEL = int(os.getenv('DISCORD_VOICE_CHANNEL'))
 ROLE = int(os.getenv('DISCORD_ROLE'))
+LOGGING_HOST = os.getenv('LOGGING_HOST')
+LOGGING_PORT = int(os.getenv('LOGGING_PORT'))
+LOGGING_NAME = 'DISCORD_CHAT_BOT'
+
+logger = logging.Logger(LOGGING_NAME)
+handler = logging.handlers.SysLogHandler(address=(LOGGING_HOST,LOGGING_PORT))
+formatter = logging.Formatter(fmt=f'{socket.gethostname()} {{%(name)s}} [%(levelname)s] %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
 
 client = discord.Client()
-logger = logging.Logger('[DISCORD_CHAT_BOT]')
-handler = logging.handlers.SysLogHandler(address="/dev/log")
-logger.addHandler(handler)
 
 @client.event
 async def on_ready():
@@ -51,10 +57,10 @@ async def clear_chat():
 async def on_voice_state_update(member:discord.Member, before:discord.VoiceState, after:discord.VoiceState):
     role = client.get_guild(GUILD).get_role(ROLE)
     if is_join(before,after) and after.channel.id==V_CHANNEL:
-        logger.info(member.display_name,"has joined",after.channel.name)
+        logger.info(f'{member.display_name} has joined {after.channel.name}')
         await member.add_roles(role)
     elif is_leave(before,after) and before.channel.id==V_CHANNEL:
-        logger.info(member.display_name,"has left",before.channel.name)
+        logger.info(f'{member.display_name} has left {before.channel.name}')
         await member.remove_roles(role)
         if len(before.channel.voice_states.keys()) == 0:
             await clear_chat()
