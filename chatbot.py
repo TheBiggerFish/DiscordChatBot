@@ -30,8 +30,11 @@ client = discord.Client()
 
 @client.event
 async def on_ready():
-    guild = discord.utils.find(lambda g: g.id==GUILD, client.guilds)
-    logger.info(f'{client.user} is connected to {guild.name}\n')
+    guild = client.get_guild(GUILD)
+    if not isinstance(guild,discord.Guild):
+        logger.error(f'Discord guild {GUILD} is not valid')
+    else:
+        logger.info(f'{client.user} is connected to {guild.name}\n')
 
 def is_join(before:discord.VoiceState,after:discord.VoiceState) -> bool:
     return before.channel is None and after.channel is not None
@@ -41,6 +44,10 @@ def is_leave(before:discord.VoiceState,after:discord.VoiceState) -> bool:
 
 async def clear_chat():
     text_channel = client.get_channel(T_CHANNEL)
+    if not isinstance(text_channel,discord.TextChannel):
+        logger.error(f'Discord text channgel {T_CHANNEL} is not valid')
+        return
+    
     if not await text_channel.history(limit=1).flatten():
         logger.info('No messages to delete from empty chat channel')
         return
@@ -49,13 +56,25 @@ async def clear_chat():
     dt = datetime.now() - relativedelta(weeks=2)
     while messages := await text_channel.history(after=dt).flatten():
         await text_channel.delete_messages(messages)
-    # async for message in text_channel.history(): 
-    #     await message.delete()
+
     logger.info('All messages deleted')
 
 @client.event
 async def on_voice_state_update(member:discord.Member, before:discord.VoiceState, after:discord.VoiceState):
-    role = client.get_guild(GUILD).get_role(ROLE)
+    guild = client.get_guild(GUILD)
+    if not isinstance(guild,discord.Guild):
+        logger.error(f'Discord guild {GUILD} is not valid')
+        return
+    
+    role = guild.get_role(ROLE)
+    if not isinstance(role,discord.Role):
+        logger.error(f'Discord guild {ROLE} is not valid')
+        return
+    
+    if not isinstance(before.channel,discord.VoiceChannel) or not isinstance(after.channel,discord.VoiceChannel):
+        logger.error(f'Channel type error in voice_state_update event')
+        return
+    
     if is_join(before,after) and after.channel.id==V_CHANNEL:
         logger.info(f'User {member.display_name} has joined voice channel {after.channel.name}')
         await member.add_roles(role)
