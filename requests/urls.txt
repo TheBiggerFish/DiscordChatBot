@@ -1,0 +1,1 @@
+Set permissions: https://discord.com/api/oauth2/authorize?client_id=795160689240047668&permissions=268641296&scope=bot
