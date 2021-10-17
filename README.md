@@ -19,6 +19,7 @@ Written for `Python 3.8.10`
 Create *.env* file in directory with following parameters
 
 * `DISCORD_TOKEN` (SECRET bot token)
+* `CONFIG_PATH` (path to config.yml)
 * `LOGGING_HOST` (host of log aggregator, e.g. localhost)
 * `LOGGING_PORT` (port of log aggregator, e.g. 514)
 

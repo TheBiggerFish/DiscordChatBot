@@ -34,10 +34,10 @@ def configure_logging(name:str, level:str, host:str, port:int) -> logging.Logger
     return logger_
 
 
-with open('config.yml',encoding='UTF-8') as config_file:
-    config = yaml.safe_load(config_file)
 
 load_dotenv()
+with open(os.getenv('CONFIG_PATH'),encoding='UTF-8') as config_file:
+    config = yaml.safe_load(config_file)
 TOKEN = os.getenv('DISCORD_TOKEN')
 LOGGING_HOST = os.getenv('LOGGING_HOST')
 LOGGING_PORT = int(os.getenv('LOGGING_PORT'))
