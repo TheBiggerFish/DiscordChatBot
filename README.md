@@ -4,8 +4,8 @@ This discord bot can be used to add a role to server members when they join a sp
 
 ## Setup to Use Existing Infrastructure
 
-Create pull request to add server configuration to config.yml
-
+Invite `ChatBot#5666` to your server \
+Create pull request to add your server configuration to config.yml
 
 ## Setup to Self-Host
 
