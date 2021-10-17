@@ -59,7 +59,7 @@ async def on_ready():
                 ChannelLookupException) as exc:
             logger.error(str(exc))
             del servers[server.server_id]
-            logger.info('Server {%d} removed from servers list. '\
+            logger.warning('Server {%d} removed from servers list. '\
                 'Now serving (%d) servers',server.server_id,len(servers))
         else:
             logger.info('{%s} is connected to "%s"',client.user,server.name)
@@ -78,12 +78,12 @@ def is_leave(before:discord.VoiceState,after:discord.VoiceState) -> bool:
 async def clear_chat(server:Server):
     """Clear all chat in server's text channel"""
 
-    logger.info('Checking text channel for message deletion')
+    logger.debug('Checking text channel {%s} for message deletion',server.text_channel_id)
     if not await server.text_channel.history(limit=1).flatten():
-        logger.info('No messages to delete from empty chat channel')
+        logger.debug('No messages to delete from empty chat channel')
         return
 
-    logger.info('Deleting messages from empty chat channel')
+    logger.info('Deleting messages from empty chat channel {%s}',server.text_channel_id)
     date_time = datetime.now() - relativedelta(weeks=2)
     while messages := await server.text_channel.history(after=date_time).flatten():
         logger.debug('Deleting %d messages from text_channel {%d}',
@@ -108,9 +108,6 @@ async def on_voice_state_update(member:discord.Member, before:discord.VoiceState
         guild_id:int = before.channel.guild.id
     elif after.channel is not None:
         guild_id:int = after.channel.guild.id
-    else:
-        logger.warning('Channel not defined in voice_state_update event')
-        return
 
     server = servers.get(guild_id)
     if server is None:
@@ -119,11 +116,11 @@ async def on_voice_state_update(member:discord.Member, before:discord.VoiceState
     logger.debug('Assessing voice_state_update on guild {%d}',guild_id)
 
     if is_join(before,after) and after.channel.id==server.voice_channel_id:
-        logger.info('User {%s} has joined voice channel {%s}',
+        logger.debug('User {%s} has joined voice channel {%s}',
                     member.display_name,after.channel.name)
         await member.add_roles(server.role)
     elif is_leave(before,after) and before.channel.id==server.voice_channel_id:
-        logger.info('User {%s} has left voice channel {%s}',
+        logger.debug('User {%s} has left voice channel {%s}',
                     member.display_name,before.channel.name)
         await member.remove_roles(server.role)
         if server.clear_chat:
@@ -135,24 +132,36 @@ async def on_voice_state_update(member:discord.Member, before:discord.VoiceState
 
 
 def connected() -> bool:
-    """Predicate function to check if server has connected to internet"""
+    """Predicate function to check if server has connected to network"""
+    
     try:
-        socket.create_connection(('8.8.8.8', 53))
+        logger.debug('Checking network connection')
+        socket.create_connection(('8.8.8.8', 53)).close()
         return True
     except socket.error as err:
-        logger.error('Error connecting to internet: %s', str(err))
+        logger.error('Error connecting to network: %s', str(err))
         return False
 
 
 def main():
     """Main entry point for program, handles discord server configuration"""
+
     while not connected():
         logger.error('Failed to connect, waiting 60 seconds')
         time.sleep(60)
-    logger.debug('Successfully connected to internet')
+    logger.debug('Successfully connected to network')
 
-    with open(os.getenv('CONFIG_PATH'),encoding='UTF-8') as config_file:
-        config = yaml.safe_load(config_file)
+    try:
+        config_path = os.getenv('CONFIG_PATH')
+        logger.debug('Opening configuration file: %s', config_path)
+        if config_path is None:
+            logger.error('CONFIG_PATH environment variable not defined')
+            return
+        with open(config_path,encoding='UTF-8') as config_file:
+            config = yaml.safe_load(config_file)
+    except IOError as err:
+        logger.error('Error opening configuration file: %s', str(err))
+        return
 
     for server_config in config['chatbot']['servers']:
         server = Server(server_config,client)
@@ -163,7 +172,14 @@ def main():
         logger.info('ID values configured for server "%s": %s',server.name,str(server_config['id']))
         servers[server.server_id] = server
 
-    client.run(os.getenv('DISCORD_TOKEN'))
+    token = os.getenv('DISCORD_TOKEN')
+    if token is not None:
+        logger.debug('DISCORD_TOKEN found, running client')
+        client.run(token)
+    else:
+        logger.error('DISCORD_TOKEN environment variable not defined')
+        return
+
 
 if __name__ == '__main__':
     main()
