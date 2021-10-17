@@ -32,9 +32,9 @@ client = discord.Client()
 async def on_ready():
     guild = client.get_guild(GUILD)
     if not isinstance(guild,discord.Guild):
-        logger.error(f'Discord guild {GUILD} is not valid')
+        logger.error(f'Discord guild {{{GUILD}}} is not valid')
     else:
-        logger.info(f'{client.user} is connected to {guild.name}\n')
+        logger.info(f'{{{client.user}}} is connected to {{{guild.name}}}\n')
 
 def is_join(before:discord.VoiceState,after:discord.VoiceState) -> bool:
     return before.channel is None and after.channel is not None
@@ -44,8 +44,10 @@ def is_leave(before:discord.VoiceState,after:discord.VoiceState) -> bool:
 
 async def clear_chat():
     text_channel = client.get_channel(T_CHANNEL)
+    logger.info('Checking text channel for message deletion')
+    
     if not isinstance(text_channel,discord.TextChannel):
-        logger.error(f'Discord text channgel {T_CHANNEL} is not valid')
+        logger.error(f'Discord text channel {{{T_CHANNEL}}} is not valid')
         return
     
     if not await text_channel.history(limit=1).flatten():
@@ -76,10 +78,10 @@ async def on_voice_state_update(member:discord.Member, before:discord.VoiceState
         return
     
     if is_join(before,after) and after.channel.id==V_CHANNEL:
-        logger.info(f'User {member.display_name} has joined voice channel {after.channel.name}')
+        logger.info(f'User {{{member.display_name}}} has joined voice channel {{{after.channel.name}}}')
         await member.add_roles(role)
     elif is_leave(before,after) and before.channel.id==V_CHANNEL:
-        logger.info(f'User {member.display_name} has left voice channel {before.channel.name}')
+        logger.info(f'User {{{member.display_name}}} has left voice channel {{{before.channel.name}}}')
         await member.remove_roles(role)
         if len(before.channel.voice_states.keys()) == 0:
             await clear_chat()
@@ -90,7 +92,7 @@ def connected():
         socket.create_connection(("8.8.8.8", 53))
         return True
     except Exception as err:
-        logger.error("Error connecting: {0}".format(err))
+        logger.error("Error connecting to internet: {0}".format(err))
         return False
 
 while not connected():
