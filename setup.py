@@ -1,3 +1,5 @@
+"""A discord bot to add a role to user while user is in voice channel"""
+
 import setuptools
 
 with open('README.md', 'r', encoding='utf-8') as fh:
