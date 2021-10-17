@@ -23,7 +23,7 @@ class Server:
         else:
             self._clear_chat:bool = True
 
-        if 'id' in config and isinstance(config['id'],Dict[str,str]):
+        if 'id' in config and isinstance(config['id'],Dict[str,int]):
             self.server_id = config['id'].get('server')
             self.voice_channel_id = config['id'].get('voice_channel')
             self.text_channel_id = config['id'].get('text_channel')

@@ -1,14 +1,16 @@
 chatbot: 
-  log_level: INFO
+  logging:
+    log_level: INFO
+    logger_name: DISCORD_CHAT_BOT
   default_config: &default_config
     clear_chat: true
   servers:
   - name: Cameron's Server
     id:
-      server: "654783023241232386"
-      voice_channel: "654783023241232390"
-      text_channel: "793880696803819590"
-      role: "793880766827200542"
+      server: 654783023241232386
+      voice_channel: 654783023241232390
+      text_channel: 793880696803819590
+      role: 793880766827200542
     config:
       <<: *default_config
 commands:
