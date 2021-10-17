@@ -16,16 +16,22 @@ Written for `Python 3.8.10`
 `pip install python-dateutil` \
 `pip install pyyaml `
 
+---
 Create *.env* file in directory with following parameters
 
-* `DISCORD_TOKEN` (SECRET bot token)
-* `CONFIG_PATH` (path to config.yml)
+* `DISCORD_TOKEN`* (SECRET bot token)
+* `CONFIG_PATH`* (path to config.yml)
+* `LOGGING_NAME`* (name of service displayed in log output)
 * `LOGGING_HOST` (host of log aggregator, e.g. localhost)
 * `LOGGING_PORT` (port of log aggregator, e.g. 514)
-* `LOGGING_NAME` (name of service displayed in log output)
-* `LOGGING_LEVEL` (log output threshold, e.g. DEBUG,INFO,WARNING)
+* `LOGGING_LEVEL` (log output threshold, e.g. DEBUG,INFO,WARNING)\
 
+If LOGGING_HOST or LOGGING_PORT are not provided, logs output to stdout \
+**required*
+
+---
 Add line to crontab \
 ```@reboot sudo /usr/local/bin/python3 /path/to/chatbot.py &```
 
+---
 Create server configurations in config.yml

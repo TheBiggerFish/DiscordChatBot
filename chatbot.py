@@ -1,4 +1,5 @@
 import os
+import sys
 import logging
 import logging.handlers
 import time
@@ -22,10 +23,18 @@ logger:logging.Logger = None
 servers:Dict[int,Server] = {}
 
 
-def configure_logger(name:str, level:str, host:str, port:int) -> logging.Logger:
+def configure_logger(name:str,host:str,port:str,level:str='INFO') -> logging.Logger:
     """Perform formatting and handling configuration and return logging.Logger"""
+
+    if name is None:
+        raise ValueError('Logger name cannot be empty')
     logger_ = logging.Logger(name)
-    handler = logging.handlers.SysLogHandler(address=(host,port))
+
+    if host is None or port is None:
+        handler = logging.StreamHandler(sys.stdout)
+    else:
+        handler = logging.handlers.SysLogHandler(address=(host,int(port)))
+
     formatter = logging.Formatter(fmt=f'{socket.gethostname()} '\
         '[%(levelname)s] %(process)s {%(name)s} %(message)s')
     handler.setFormatter(formatter)
@@ -38,11 +47,11 @@ def configure_logger(name:str, level:str, host:str, port:int) -> logging.Logger:
 
 load_dotenv()
 LOGGING_HOST = os.getenv('LOGGING_HOST')
-LOGGING_PORT = int(os.getenv('LOGGING_PORT'))
+LOGGING_PORT = os.getenv('LOGGING_PORT')
 LOGGING_NAME = os.getenv('LOGGING_NAME')
 LOGGING_LEVEL = os.getenv('LOGGING_LEVEL')
-logger = configure_logger(LOGGING_NAME,LOGGING_LEVEL,
-                            LOGGING_HOST,LOGGING_PORT)
+logger = configure_logger(LOGGING_NAME,LOGGING_HOST,
+                          LOGGING_PORT,LOGGING_LEVEL)
 
 
 @client.event
