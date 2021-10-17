@@ -27,7 +27,7 @@ def configure_logging(name:str, level:str, host:str, port:int) -> logging.Logger
     logger_ = logging.Logger(name)
     handler = logging.handlers.SysLogHandler(address=(host,port))
     formatter = logging.Formatter(fmt=f'{socket.gethostname()} '\
-        '[%(levelname)s] %(process)s {{%(name)s}} %(message)s')
+        '[%(levelname)s] %(process)s {%(name)s} %(message)s')
     handler.setFormatter(formatter)
     logger_.addHandler(handler)
     logger_.setLevel(level)
@@ -60,10 +60,10 @@ async def on_ready():
                 ChannelLookupException) as exc:
             logger.error(str(exc))
             del servers[server.server_id]
-            logger.info('Server {{%d}} removed from servers list. '\
+            logger.info('Server {%d} removed from servers list. '\
                 'Now serving (%d) servers',server.server_id,len(servers))
         else:
-            logger.info('%s is connected to "%s"',client.user,server.name)
+            logger.info('{%s} is connected to "%s"',client.user,server.name)
 
 
 def is_join(before:discord.VoiceState,after:discord.VoiceState) -> bool:
@@ -87,7 +87,7 @@ async def clear_chat(server:Server):
     logger.info('Deleting messages from empty chat channel')
     date_time = datetime.now() - relativedelta(weeks=2)
     while messages := await server.text_channel.history(after=date_time).flatten():
-        logger.debug('Deleting %d messages from text_channel {{%d}}',
+        logger.debug('Deleting %d messages from text_channel {%d}',
                      len(messages),server.text_channel_id)
         await server.text_channel.delete_messages(messages)
 
@@ -99,29 +99,40 @@ async def on_voice_state_update(member:discord.Member, before:discord.VoiceState
                                 after:discord.VoiceState):
     """Perform role updating for voice_state_update events"""
 
-    if not isinstance(before.channel,discord.VoiceChannel) or \
+    if not isinstance(before.channel,discord.VoiceChannel) and \
             not isinstance(after.channel,discord.VoiceChannel):
-        logger.error('Channel type error in voice_state_update event')
+        logger.error('Channel type error in voice_state_update event: '\
+                     '{before:%s,after:%s}',type(before.channel),type(after.channel))
         return
 
-    guild_id = str(before.channel.guild.id)
+    if before.channel is not None:
+        guild_id:int = before.channel.guild.id
+    elif after.channel is not None:
+        guild_id:int = after.channel.guild.id
+    else:
+        logger.warning('Channel not defined in voice_state_update event')
+        return
+
     server = servers.get(guild_id)
     if server is None:
-        logger.warning('Received voice_state_update for non-configured channel {{%d}}',guild_id)
+        logger.warning('Received voice_state_update for non-configured channel {%d}',guild_id)
         return
-    logger.debug('Assessing voice_state_update on guild {{%d}}',guild_id)
+    logger.debug('Assessing voice_state_update on guild {%d}',guild_id)
 
     if is_join(before,after) and after.channel.id==server.voice_channel_id:
-        logger.info('User {{%s}} has joined voice channel {{%s}}',
-                    member.mention,after.channel.name)
+        logger.info('User {%s} has joined voice channel {%s}',
+                    member.display_name,after.channel.name)
         await member.add_roles(server.role)
     elif is_leave(before,after) and before.channel.id==server.voice_channel_id:
-        logger.info('User {{%s}} has left voice channel {{%s}}',
-                    member.mention,before.channel.name)
+        logger.info('User {%s} has left voice channel {%s}',
+                    member.display_name,before.channel.name)
         await member.remove_roles(server.role)
         if server.clear_chat:
             if len(before.channel.voice_states.keys()) == 0:
                 await clear_chat(server)
+    else:
+        logger.debug('voice_state_update event in guild {%d} is '\
+            'neither join nor leave', guild_id)
 
 
 def connected() -> bool:
