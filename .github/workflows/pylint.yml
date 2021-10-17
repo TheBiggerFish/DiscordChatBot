@@ -20,5 +20,5 @@ jobs:
         pip install .
     - name: Analysing the code with pylint
       run: |
-        pylint *.py
+        pylint chatbot.py
         pylint **/*.py
