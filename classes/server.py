@@ -1,9 +1,9 @@
-from typing import Dict
+from typing import Dict, Optional
 from functools import cached_property
 
 import discord
 
-from exceptions import ChannelLookupException,GuildLookupException,RoleLookupException
+from classes.exceptions import ChannelLookupException,GuildLookupException,RoleLookupException
 
 class Server:
     """Class to handle configuration and accessing of discord objects"""
@@ -23,11 +23,11 @@ class Server:
         else:
             self._clear_chat:bool = True
 
-        if 'id' in config and isinstance(config['id'],Dict[str,int]):
-            self.server_id = config['id'].get('server')
-            self.voice_channel_id = config['id'].get('voice_channel')
-            self.text_channel_id = config['id'].get('text_channel')
-            self.role_id = config['id'].get('role')
+        if 'id' in config and isinstance(config['id'],dict):
+            self.server_id:Optional[int] = config['id'].get('server')
+            self.voice_channel_id:Optional[int] = config['id'].get('voice_channel')
+            self.text_channel_id:Optional[int] = config['id'].get('text_channel')
+            self.role_id:Optional[int] = config['id'].get('role')
 
     def has_empty_id(self) -> bool:
         """Predicate method to validate presence of required IDs"""
@@ -49,7 +49,7 @@ class Server:
         return guild
 
     @cached_property
-    def role(self) -> discord.Role:   
+    def role(self) -> discord.Role:
         """Lookup and return role if found"""
         role = self.guild.get_role(self.role_id)
         if not isinstance(role,discord.Role):
