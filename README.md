@@ -22,6 +22,8 @@ Create *.env* file in directory with following parameters
 * `CONFIG_PATH` (path to config.yml)
 * `LOGGING_HOST` (host of log aggregator, e.g. localhost)
 * `LOGGING_PORT` (port of log aggregator, e.g. 514)
+* `LOGGING_NAME` (name of service displayed in log output)
+* `LOGGING_LEVEL` (log output threshold, e.g. DEBUG,INFO,WARNING)
 
 Add line to crontab \
 ```@reboot sudo /usr/local/bin/python3 /path/to/chatbot.py &```

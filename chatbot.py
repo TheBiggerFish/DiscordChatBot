@@ -19,10 +19,10 @@ from classes.exceptions import ChannelLookupException,RoleLookupException,GuildL
 
 client = discord.Client()
 logger:logging.Logger = None
-servers:Dict[str,Server] = {}
+servers:Dict[int,Server] = {}
 
 
-def configure_logging(name:str, level:str, host:str, port:int) -> logging.Logger:
+def configure_logger(name:str, level:str, host:str, port:int) -> logging.Logger:
     """Perform formatting and handling configuration and return logging.Logger"""
     logger_ = logging.Logger(name)
     handler = logging.handlers.SysLogHandler(address=(host,port))
@@ -31,19 +31,17 @@ def configure_logging(name:str, level:str, host:str, port:int) -> logging.Logger
     handler.setFormatter(formatter)
     logger_.addHandler(handler)
     logger_.setLevel(level)
+    logger_.debug('Logger configured: {{"name":%s,"level":%s,"host":%s,"port":%d}}',
+                  name,level,host,port)
     return logger_
 
 
-
 load_dotenv()
-with open(os.getenv('CONFIG_PATH'),encoding='UTF-8') as config_file:
-    config = yaml.safe_load(config_file)
-TOKEN = os.getenv('DISCORD_TOKEN')
 LOGGING_HOST = os.getenv('LOGGING_HOST')
 LOGGING_PORT = int(os.getenv('LOGGING_PORT'))
-LOGGING_NAME = config['chatbot']['logging']['logger_name']
-LOGGING_LEVEL = config['chatbot']['logging']['log_level']
-logger = configure_logging(LOGGING_NAME,LOGGING_LEVEL,
+LOGGING_NAME = os.getenv('LOGGING_NAME')
+LOGGING_LEVEL = os.getenv('LOGGING_LEVEL')
+logger = configure_logger(LOGGING_NAME,LOGGING_LEVEL,
                             LOGGING_HOST,LOGGING_PORT)
 
 
@@ -51,6 +49,7 @@ logger = configure_logging(LOGGING_NAME,LOGGING_LEVEL,
 async def on_ready():
     """Called by discord upon bot ready state, validate IDs"""
 
+    logger.debug('client ready')
     for _,server in servers.items():
         try:
             _ = server.guild
@@ -138,29 +137,33 @@ async def on_voice_state_update(member:discord.Member, before:discord.VoiceState
 def connected() -> bool:
     """Predicate function to check if server has connected to internet"""
     try:
-        socket.create_connection(("8.8.8.8", 53))
+        socket.create_connection(('8.8.8.8', 53))
         return True
     except socket.error as err:
-        logger.error("Error connecting to internet: %s", str(err))
+        logger.error('Error connecting to internet: %s', str(err))
         return False
 
 
 def main():
     """Main entry point for program, handles discord server configuration"""
     while not connected():
-        logger.error("Failed to connect, waiting 60 seconds")
+        logger.error('Failed to connect, waiting 60 seconds')
         time.sleep(60)
+    logger.debug('Successfully connected to internet')
+
+    with open(os.getenv('CONFIG_PATH'),encoding='UTF-8') as config_file:
+        config = yaml.safe_load(config_file)
 
     for server_config in config['chatbot']['servers']:
         server = Server(server_config,client)
         if server.has_empty_id():
             logger.error('Missing required ID value(s) for server "%s": %s',
-                        server.name, str(server_config["id"]))
+                        server.name, str(server_config['id']))
             continue
-        logger.info('ID values configured for server "%s": %s',server.name,str(server_config["id"]))
+        logger.info('ID values configured for server "%s": %s',server.name,str(server_config['id']))
         servers[server.server_id] = server
 
-    client.run(TOKEN)
+    client.run(os.getenv('DISCORD_TOKEN'))
 
 if __name__ == '__main__':
     main()

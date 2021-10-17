@@ -1,7 +1,4 @@
 chatbot: 
-  logging:
-    log_level: INFO
-    logger_name: DISCORD_CHAT_BOT
   default_config: &default_config
     clear_chat: true
   servers:
