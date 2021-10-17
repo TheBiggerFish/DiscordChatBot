@@ -185,6 +185,7 @@ def main():
     if token is not None:
         logger.debug('DISCORD_TOKEN found, running client')
         client.run(token)
+        logger.info('Client closed by keyboard interrupt')
     else:
         logger.error('DISCORD_TOKEN environment variable not defined')
         return
