@@ -1,3 +1,6 @@
+"""This discord bot can be used to add a role to server members when they join a specific voice channel. 
+This can be used to create a text channel that can be used for posting without bothering members not in the call."""
+
 import os
 import sys
 import logging
