@@ -7,7 +7,6 @@ import socket
 from typing import Dict
 from datetime import datetime
 
-
 import yaml
 import discord
 
@@ -142,7 +141,7 @@ async def on_voice_state_update(member:discord.Member, before:discord.VoiceState
 
 def connected() -> bool:
     """Predicate function to check if server has connected to network"""
-    
+
     try:
         logger.debug('Checking network connection')
         socket.create_connection(('8.8.8.8', 53)).close()
