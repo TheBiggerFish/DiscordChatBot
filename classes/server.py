@@ -1,3 +1,5 @@
+"""Class to handle configuration and accessing of discord objects"""
+
 from typing import Dict, Optional
 from functools import cached_property
 
