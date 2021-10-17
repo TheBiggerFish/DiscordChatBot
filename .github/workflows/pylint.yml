@@ -20,5 +20,4 @@ jobs:
         pip install .
     - name: Analysing the code with pylint
       run: |
-        pylint chatbot.py
-        pylint **/*.py
+        pylint `ls -d **|grep .py$|xargs`
