@@ -1,0 +1,8 @@
+version: '3.8'
+services:
+  python:
+    image: 'discord_chatbot'
+    hostname: $HOSTNAME
+    build:
+      context: .
+      dockerfile: Dockerfile
