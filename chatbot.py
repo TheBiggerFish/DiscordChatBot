@@ -5,24 +5,23 @@ text channel that can be used for posting without bothering members
 not in the call.
 """
 
-import os
-import sys
 import logging
 import logging.handlers
-import time
+import os
 import socket
-from typing import Dict
+import sys
+import time
 from datetime import datetime
+from typing import Dict
 
-import yaml
 import discord
-
-from dotenv import load_dotenv
+import yaml
 from dateutil.relativedelta import relativedelta
+from dotenv import load_dotenv
 
-from classes.server import Server
-from classes.exceptions import ChannelLookupException,RoleLookupException,GuildLookupException
-
+from classes import Server
+from classes.exceptions import (ChannelLookupException, GuildLookupException,
+                                RoleLookupException)
 
 client = discord.Client()
 logger:logging.Logger = None
