@@ -24,9 +24,9 @@ Create *.env* file in directory with following parameters
 * `LOGGING_NAME`* (name of service displayed in log output)
 * `LOGGING_HOST` (host of log aggregator, e.g. localhost)
 * `LOGGING_PORT` (port of log aggregator, e.g. 514)
-* `LOGGING_LEVEL` (log output threshold, e.g. DEBUG,INFO,WARNING)\
+* `LOGGING_LEVEL` (log output threshold, e.g. DEBUG,INFO,WARNING)
 
-If LOGGING_HOST or LOGGING_PORT are not provided, logs output to stdout \
+If LOGGING_HOST is not provided, logs output to stdout \
 **required*
 
 ---
