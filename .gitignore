@@ -1,7 +1,6 @@
 .env
 .vscode
 **/__pycache__
-.pylintrc
 chatbot.log
 discordChatBot_TheBiggerFish.egg-info
 dist
