@@ -20,4 +20,4 @@ jobs:
         pip install .
     - name: Analysing the code with pylint
       run: |
-        pylint `find -not -iname "*__init__.py" -iname "*.py"|xargs`
+        pylint `find -iname "*.py"|xargs`
