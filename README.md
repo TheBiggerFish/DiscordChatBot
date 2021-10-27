@@ -23,7 +23,7 @@ Create *.env* file in directory with following parameters
 * `LOGGING_PORT` (port of log aggregator, e.g. 514)
 * `LOGGING_LEVEL` (log output threshold, e.g. DEBUG,INFO,WARNING)
 
-If LOGGING_HOST is not provided, logs output to stdout \
+If `LOGGING_HOST` not provided, logs output to stdout \
 **required*
 
 ---
