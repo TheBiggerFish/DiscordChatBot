@@ -5,11 +5,8 @@ text channel that can be used for posting without bothering members
 not in the call.
 """
 
-import logging
-import logging.handlers
 import os
 import socket
-import sys
 import time
 from datetime import datetime
 from typing import Dict
@@ -19,45 +16,24 @@ import yaml
 from dateutil.relativedelta import relativedelta
 from dotenv import load_dotenv
 
-from classes import Server
+from classes import Logger, Server
 from classes.exceptions import (ChannelLookupException, GuildLookupException,
                                 RoleLookupException)
 
 client = discord.Client()
-logger:logging.Logger = None
+logger:Logger = None
 servers:Dict[int,Server] = {}
-
-
-def configure_logger(name:str,host:str,port:str,level:str='INFO') -> logging.Logger:
-    """Perform formatting and handling configuration and return logging.Logger"""
-
-    if name is None:
-        raise ValueError('Logger name cannot be empty')
-    logger_ = logging.Logger(name)
-
-    if host is None or port is None:
-        handler = logging.StreamHandler(sys.stdout)
-    else:
-        handler = logging.handlers.SysLogHandler(address=(host,int(port)))
-
-    formatter = logging.Formatter(fmt=f'{socket.gethostname()} '\
-        '[%(levelname)s] %(process)s {%(name)s} %(message)s')
-    handler.setFormatter(formatter)
-    logger_.addHandler(handler)
-    logger_.setLevel(level)
-    logger_.debug('Logger configured: {{"name":%s,"level":%s,"host":%s,"port":%d}}',
-                  name,level,host,port)
-    return logger_
-
 
 load_dotenv()
 LOGGING_HOST = os.getenv('LOGGING_HOST')
 LOGGING_PORT = os.getenv('LOGGING_PORT')
 LOGGING_NAME = os.getenv('LOGGING_NAME')
 LOGGING_LEVEL = os.getenv('LOGGING_LEVEL')
-logger = configure_logger(LOGGING_NAME,LOGGING_HOST,
-                          LOGGING_PORT,LOGGING_LEVEL)
 
+logger = Logger(LOGGING_NAME,LOGGING_HOST,
+                LOGGING_PORT,LOGGING_LEVEL)
+logger.debug('Logger configured: {{"name":%s,"level":%s,"host":%s,"port":%d}}',
+             LOGGING_HOST,LOGGING_LEVEL,LOGGING_HOST,LOGGING_PORT)
 
 @client.event
 async def on_ready():
@@ -92,12 +68,14 @@ def is_leave(before:discord.VoiceState,after:discord.VoiceState) -> bool:
 async def clear_chat(server:Server):
     """Clear all chat in server's text channel"""
 
-    logger.debug('Checking text channel {%s} for message deletion',server.text_channel_id)
+    logger.debug('Checking text channel {%s} for message deletion',
+                 server.text_channel_id)
     if not await server.text_channel.history(limit=1).flatten():
         logger.debug('No messages to delete from empty chat channel')
         return
 
-    logger.info('Deleting messages from empty chat channel {%s}',server.text_channel_id)
+    logger.info('Deleting messages from empty chat channel {%s}',
+                server.text_channel_id)
     date_time = datetime.now() - relativedelta(weeks=2)
     while messages := await server.text_channel.history(after=date_time).flatten():
         logger.debug('Deleting %d messages from text_channel {%d}',
