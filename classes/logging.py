@@ -11,8 +11,6 @@ class Logger(logging.Logger):
     """Class to handle logging for chatbot"""
 
     def __init__(self, name:str, host:Optional[str], port:str='514', level:str='INFO'):
-        """Perform formatting and handling configuration and return logging.Logger"""
-
         super().__init__(name)
 
         if host is None:
