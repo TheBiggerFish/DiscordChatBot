@@ -11,10 +11,7 @@ Create pull request to add your server configuration to config.yml
 
 Written for `Python 3.8.10` 
 
-`pip install discord` \
-`pip install python-dotenv` \
-`pip install python-dateutil` \
-`pip install pyyaml `
+`pip install .`
 
 ---
 Create *.env* file in directory with following parameters
@@ -30,7 +27,7 @@ If LOGGING_HOST is not provided, logs output to stdout \
 **required*
 
 ---
-Add line to crontab \
+Add line to crontab for auto-run on startup \
 ```@reboot sudo /usr/local/bin/python3 /path/to/chatbot.py &```
 
 ---
