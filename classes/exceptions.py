@@ -2,6 +2,7 @@
 
 from discord import DiscordException
 
+
 class GuildLookupException(DiscordException):
     """Caught to handle exceptions from discord.Client.get_guild()"""
 

@@ -1,11 +1,13 @@
 """Class to handle configuration and accessing of discord objects"""
 
-from typing import Dict, Optional
 from functools import cached_property
+from typing import Dict, Optional
 
 import discord
 
-from classes.exceptions import ChannelLookupException,GuildLookupException,RoleLookupException
+from classes.exceptions import (ChannelLookupException, GuildLookupException,
+                                RoleLookupException)
+
 
 class Server:
     """Class to handle configuration and accessing of discord objects"""
