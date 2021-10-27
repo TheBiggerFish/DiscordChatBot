@@ -1,6 +1,9 @@
-from dotenv.main import load_dotenv
-import requests
+# pylint: skip-file
+
 import os
+
+import requests
+from dotenv.main import load_dotenv
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
