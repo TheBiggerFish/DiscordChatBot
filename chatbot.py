@@ -21,8 +21,8 @@ from classes.exceptions import (ChannelLookupException, GuildLookupException,
                                 RoleLookupException)
 
 client = discord.Client()
-logger:Logger = None
-servers:Dict[int,Server] = {}
+logger: Logger = None
+servers: Dict[int, Server] = {}
 
 load_dotenv()
 LOGGING_HOST = os.getenv('LOGGING_HOST')
@@ -30,42 +30,43 @@ LOGGING_PORT = os.getenv('LOGGING_PORT')
 LOGGING_NAME = os.getenv('LOGGING_NAME')
 LOGGING_LEVEL = os.getenv('LOGGING_LEVEL')
 
-logger = Logger(LOGGING_NAME,LOGGING_HOST,
-                LOGGING_PORT,LOGGING_LEVEL)
+logger = Logger(LOGGING_NAME, LOGGING_HOST,
+                LOGGING_PORT, LOGGING_LEVEL)
 logger.debug('Logger configured: {{"name":%s,"level":%s,"host":%s,"port":%d}}',
-             LOGGING_HOST,LOGGING_LEVEL,LOGGING_HOST,LOGGING_PORT)
+             LOGGING_HOST, LOGGING_LEVEL, LOGGING_HOST, LOGGING_PORT)
+
 
 @client.event
 async def on_ready():
     """Called by discord upon bot ready state, validate IDs"""
 
     logger.debug('client ready')
-    for _,server in servers.items():
+    for _, server in servers.items():
         try:
             _ = server.guild
             _ = server.role
             _ = server.text_channel
-        except (GuildLookupException,RoleLookupException,
+        except (GuildLookupException, RoleLookupException,
                 ChannelLookupException) as exc:
             logger.error(str(exc))
             del servers[server.server_id]
-            logger.warning('Server {%d} removed from servers list. '\
-                'Now serving (%d) servers',server.server_id,len(servers))
+            logger.warning('Server {%d} removed from servers list. '
+                           'Now serving (%d) servers', server.server_id, len(servers))
         else:
-            logger.info('{%s} is connected to "%s"',client.user,server.name)
+            logger.info('{%s} is connected to "%s"', client.user, server.name)
 
 
-def is_join(before:discord.VoiceState,after:discord.VoiceState) -> bool:
+def is_join(before: discord.VoiceState, after: discord.VoiceState) -> bool:
     """Predicate function to check if voice state change is channel join"""
     return before.channel is None and after.channel is not None
 
 
-def is_leave(before:discord.VoiceState,after:discord.VoiceState) -> bool:
+def is_leave(before: discord.VoiceState, after: discord.VoiceState) -> bool:
     """Predicate function to check if voice state change is channel leave"""
     return before.channel is not None and after.channel is None
 
 
-async def clear_chat(server:Server):
+async def clear_chat(server: Server):
     """Clear all chat in server's text channel"""
 
     logger.debug('Checking text channel {%s} for message deletion',
@@ -79,48 +80,49 @@ async def clear_chat(server:Server):
     date_time = datetime.now() - relativedelta(weeks=2)
     while messages := await server.text_channel.history(after=date_time).flatten():
         logger.debug('Deleting %d messages from text_channel {%d}',
-                     len(messages),server.text_channel_id)
+                     len(messages), server.text_channel_id)
         await server.text_channel.delete_messages(messages)
 
     logger.info('All messages deleted')
 
 
 @client.event
-async def on_voice_state_update(member:discord.Member, before:discord.VoiceState,
-                                after:discord.VoiceState):
+async def on_voice_state_update(member: discord.Member, before: discord.VoiceState,
+                                after: discord.VoiceState):
     """Perform role updating for voice_state_update events"""
 
-    if not isinstance(before.channel,discord.VoiceChannel) and \
-            not isinstance(after.channel,discord.VoiceChannel):
-        logger.error('Channel type error in voice_state_update event: '\
-                     '{before:%s,after:%s}',type(before.channel),type(after.channel))
+    if not isinstance(before.channel, discord.VoiceChannel) and \
+            not isinstance(after.channel, discord.VoiceChannel):
+        logger.error('Channel type error in voice_state_update event: '
+                     '{before:%s,after:%s}', type(before.channel), type(after.channel))
         return
 
     if before.channel is not None:
-        guild_id:int = before.channel.guild.id
+        guild_id: int = before.channel.guild.id
     elif after.channel is not None:
-        guild_id:int = after.channel.guild.id
+        guild_id: int = after.channel.guild.id
 
     server = servers.get(guild_id)
     if server is None:
-        logger.warning('Received voice_state_update for non-configured channel {%d}',guild_id)
+        logger.warning('Received voice_state_update for non-configured channel {%d}',
+                       guild_id)
         return
-    logger.debug('Assessing voice_state_update on guild {%d}',guild_id)
+    logger.debug('Assessing voice_state_update on guild {%d}', guild_id)
 
-    if is_join(before,after) and after.channel.id==server.voice_channel_id:
+    if is_join(before, after) and after.channel.id == server.voice_channel_id:
         logger.debug('User {%s} has joined voice channel {%s}',
-                    member.display_name,after.channel.name)
+                     member.display_name, after.channel.name)
         await member.add_roles(server.role)
-    elif is_leave(before,after) and before.channel.id==server.voice_channel_id:
+    elif is_leave(before, after) and before.channel.id == server.voice_channel_id:
         logger.debug('User {%s} has left voice channel {%s}',
-                    member.display_name,before.channel.name)
+                     member.display_name, before.channel.name)
         await member.remove_roles(server.role)
         if server.clear_chat:
             if len(before.channel.voice_states.keys()) == 0:
                 await clear_chat(server)
     else:
-        logger.debug('voice_state_update event in guild {%d} is '\
-            'neither join nor leave', guild_id)
+        logger.debug('voice_state_update event in guild {%d} is '
+                     'neither join nor leave', guild_id)
 
 
 def connected() -> bool:
@@ -149,19 +151,20 @@ def main():
         if config_path is None:
             logger.error('CONFIG_PATH environment variable not defined')
             return
-        with open(config_path,encoding='UTF-8') as config_file:
+        with open(config_path, encoding='UTF-8') as config_file:
             config = yaml.safe_load(config_file)
     except IOError as err:
         logger.error('Error opening configuration file: %s', str(err))
         return
 
     for server_config in config['chatbot']['servers']:
-        server = Server(server_config,client)
+        server = Server(server_config, client)
         if server.has_empty_id():
             logger.error('Missing required ID value(s) for server "%s": %s',
-                        server.name, str(server_config['id']))
+                         server.name, str(server_config['id']))
             continue
-        logger.info('ID values configured for server "%s": %s',server.name,str(server_config['id']))
+        logger.info('ID values configured for server "%s": %s',
+                    server.name, str(server_config['id']))
         servers[server.server_id] = server
 
     token = os.getenv('DISCORD_TOKEN')
