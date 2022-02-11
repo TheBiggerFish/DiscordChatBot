@@ -9,7 +9,7 @@ import os
 import socket
 import time
 from datetime import datetime
-from typing import Dict, Optional
+from typing import Dict
 
 import discord
 import yaml
@@ -40,36 +40,50 @@ logger.debug('Logger configured: {{"name":%s,"level":%s,"host":%s,"port":%d}}',
 async def on_ready():
     """Called by discord upon bot ready state, validate IDs"""
 
-    logger.debug('Client ready. Iterating servers')
+    logger.debug('client ready')
     for _, server in servers.items():
         try:
             _ = server.guild
-        except GuildLookupException as exc:
+            _ = server.role
+            _ = server.text_channel
+        except (GuildLookupException, RoleLookupException,
+                ChannelLookupException) as exc:
             logger.error(str(exc))
             del servers[server.server_id]
-            logger.warning('Server {%d} removed from servers list for GuildLookupException. '
+            logger.warning('Server {%d} removed from servers list. '
                            'Now serving (%d) servers', server.server_id, len(servers))
         else:
             logger.info('{%s} is connected to "%s"', client.user, server.name)
 
-            if server.validate_chat_channels() == 0:
-                del servers[server.server_id]
-                logger.warning('Server {%d} removed from servers for lack of channels. '
-                               'Now serving (%d) servers', server.server_id, len(servers))
 
-
-def is_join(before: Optional[discord.VoiceState],
-            after: Optional[discord.VoiceState]) -> bool:
+def is_join(before: discord.VoiceState, after: discord.VoiceState) -> bool:
     """Predicate function to check if voice state change is channel join"""
-    return after.channel is not None and \
-        (before.channel is None or before.channel.id != after.channel.id)
+    return before.channel is None and after.channel is not None
 
 
-def is_leave(before: Optional[discord.VoiceState],
-             after: Optional[discord.VoiceState]) -> bool:
+def is_leave(before: discord.VoiceState, after: discord.VoiceState) -> bool:
     """Predicate function to check if voice state change is channel leave"""
-    return before.channel is not None and \
-        (after.channel is None or before.channel.id != after.channel.id)
+    return before.channel is not None and after.channel is None
+
+
+async def clear_chat(server: Server):
+    """Clear all chat in server's text channel"""
+
+    logger.debug('Checking text channel {%s} for message deletion',
+                 server.text_channel_id)
+    if not await server.text_channel.history(limit=1).flatten():
+        logger.debug('No messages to delete from empty chat channel')
+        return
+
+    logger.info('Deleting messages from empty chat channel {%s}',
+                server.text_channel_id)
+    date_time = datetime.now() - relativedelta(weeks=2)
+    while messages := await server.text_channel.history(after=date_time).flatten():
+        logger.debug('Deleting %d messages from text_channel {%d}',
+                     len(messages), server.text_channel_id)
+        await server.text_channel.delete_messages(messages)
+
+    logger.info('All messages deleted')
 
 
 @client.event
@@ -90,22 +104,22 @@ async def on_voice_state_update(member: discord.Member, before: discord.VoiceSta
 
     server = servers.get(guild_id)
     if server is None:
-        logger.warning('Received voice_state_update for non-configured guild {%d}',
+        logger.warning('Received voice_state_update for non-configured channel {%d}',
                        guild_id)
         return
-
     logger.debug('Assessing voice_state_update on guild {%d}', guild_id)
-    if is_leave(before, after) and before.channel.id in server.chat_channels:
-        logger.debug('User {%s} has left voice channel {%s}',
-                     member.display_name, before.channel.name)
-        await member.remove_roles(server.chat_channels[before.channel.id].role_id)
-        if server.clear_chat:
-            if len(before.channel.voice_states.keys()) == 0:
-                await server.chat_channels[before.channel.id].clear_chat(server.client)
-    if is_join(before, after) and after.channel.id in server.chat_channels:
+
+    if is_join(before, after) and after.channel.id == server.voice_channel_id:
         logger.debug('User {%s} has joined voice channel {%s}',
                      member.display_name, after.channel.name)
-        await member.add_roles(server.chat_channels[after.channel.id].role_id)
+        await member.add_roles(server.role)
+    elif is_leave(before, after) and before.channel.id == server.voice_channel_id:
+        logger.debug('User {%s} has left voice channel {%s}',
+                     member.display_name, before.channel.name)
+        await member.remove_roles(server.role)
+        if server.clear_chat:
+            if len(before.channel.voice_states.keys()) == 0:
+                await clear_chat(server)
     else:
         logger.debug('voice_state_update event in guild {%d} is '
                      'neither join nor leave', guild_id)
@@ -135,21 +149,21 @@ def main():
         config_path = os.getenv('CONFIG_PATH')
         logger.debug('Opening configuration file: %s', config_path)
         if config_path is None:
-            logger.critical('CONFIG_PATH environment variable not defined')
+            logger.error('CONFIG_PATH environment variable not defined')
             return
         with open(config_path, encoding='UTF-8') as config_file:
             config = yaml.safe_load(config_file)
     except IOError as err:
-        logger.critical('Error opening configuration file: %s', str(err))
+        logger.error('Error opening configuration file: %s', str(err))
         return
 
     for server_config in config['chatbot']['servers']:
         server = Server(server_config, client)
-        if server.server_id is None:
+        if server.has_empty_id():
             logger.error('Missing required ID value(s) for server "%s": %s',
                          server.name, str(server_config['id']))
             continue
-        logger.info('Server ID value configured for server "%s": %s',
+        logger.info('ID values configured for server "%s": %s',
                     server.name, str(server_config['id']))
         servers[server.server_id] = server
 
