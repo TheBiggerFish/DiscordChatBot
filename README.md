@@ -30,5 +30,8 @@ If `LOGGING_HOST` not provided, logs output to stdout \
 Add line to crontab for auto-run on startup \
 ```@reboot sudo /usr/local/bin/python3 /path/to/chatbot.py &```
 
+Or run in docker using \
+```docker-compose up --build```
+
 ---
 Create server configurations in config.yml
