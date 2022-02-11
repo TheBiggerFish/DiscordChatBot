@@ -1,9 +1,11 @@
 """Class to handle configuration and accessing of discord objects"""
 
+from datetime import datetime
 from functools import cached_property
 from typing import Dict, Optional
 
 import discord
+from dateutil.relativedelta import relativedelta
 
 from classes.exceptions import (ChannelLookupException, GuildLookupException,
                                 RoleLookupException)
@@ -13,6 +15,12 @@ class Server:
     """Class to handle configuration and accessing of discord objects"""
 
     def __init__(self, config: Dict, client: discord.Client):
+        self.name: Optional[str] = None
+        self.server_id: Optional[int] = None
+        self.voice_channel_id: Optional[int] = None
+        self.text_channel_id: Optional[int] = None
+        self.role_id: Optional[int] = None
+        self._clear_chat: bool = True
         self._read_config(config)
         self.client = client
 
@@ -30,9 +38,9 @@ class Server:
         if 'id' in config and isinstance(config['id'], dict):
             self.server_id: Optional[int] = config['id'].get('server')
             self.voice_channel_id: Optional[int] = \
-                config['id'].get('voice_channel')
+                config['id'].get('voice')
             self.text_channel_id: Optional[int] = \
-                config['id'].get('text_channel')
+                config['id'].get('text')
             self.role_id: Optional[int] = config['id'].get('role')
 
     def has_empty_id(self) -> bool:
@@ -69,5 +77,39 @@ class Server:
         text_channel = self.client.get_channel(self.text_channel_id)
         if not isinstance(text_channel, discord.TextChannel):
             raise ChannelLookupException('Discord text channel '
-                                         f'{self.text_channel_id} could not be found by client')
+                                         f'{{{self.text_channel_id}}} '
+                                         'could not be found by client')
         return text_channel
+
+    @cached_property
+    def voice_channel(self) -> discord.VoiceChannel:
+        """Lookup and return voice_channel if found"""
+        voice_channel = self.client.get_channel(self.voice_channel_id)
+        if not isinstance(voice_channel, discord.VoiceChannel):
+            raise ChannelLookupException('Discord voice channel '
+                                         f'{{{self.voice_channel_id}}} '
+                                         'could not be found by client')
+        return voice_channel
+
+    async def _do_clear_chat(self):
+        """Clear all chat in server's text channel"""
+
+        if not await self.text_channel.history(limit=1).flatten():
+            return
+        date_time = datetime.now() - relativedelta(weeks=2)
+        while messages := await self.text_channel.history(after=date_time).flatten():
+            await self.text_channel.delete_messages(messages)
+
+    async def user_left(self, member: discord.Member, block_clear: bool = False) -> bool:
+        """Remove role from user that leaves, clear channel if empty, return true if cleared"""
+        await member.remove_roles(self.role)
+
+        if self.clear_chat and not block_clear:
+            if len(self.voice_channel.voice_states.keys()) == 0:
+                await self._do_clear_chat()
+                return True
+        return False
+
+    async def user_joined(self, member: discord.Member):
+        """Add role to new user"""
+        await member.add_roles(self.role)

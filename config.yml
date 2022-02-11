@@ -2,11 +2,28 @@ chatbot:
   default_config: &default_config
     clear_chat: true
   servers:
-  - name: Cameron's Server
+  - name: Cameron's Server - General
     id:
       server: 654783023241232386
-      voice_channel: 654783023241232390
-      text_channel: 793880696803819590
+      voice: 654783023241232390
+      text: 793880696803819590
+      role: 793880766827200542
+    config:
+      <<: *default_config
+  - name: Cameron's Server - Baro Kings
+    id:
+      server: 654783023241232386
+      voice: 937510216495423509
+      text: 793880696803819590
+      role: 793880766827200542
+    config:
+      <<: *default_config
+      clear_chat: false
+  - name: Cameron's Server - Storm King's Thunder
+    id:
+      server: 654783023241232386
+      voice: 933107650919542804
+      text: 793880696803819590
       role: 793880766827200542
     config:
       <<: *default_config
