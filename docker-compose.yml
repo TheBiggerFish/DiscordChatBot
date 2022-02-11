@@ -1,8 +1,11 @@
 version: '3.8'
 services:
   python:
-    image: 'discord_chatbot'
+    container_name: discord_chatbot
+    image: discord_chatbot
     hostname: $HOSTNAME
     build:
       context: .
       dockerfile: Dockerfile
+    ports: 
+      - 6463-6472

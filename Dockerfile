@@ -4,4 +4,6 @@ COPY . .
 RUN pip install --upgrade pip
 RUN pip install -e .
 RUN echo "Installation finished"
+
+COPY . /chatbot/
 CMD ["python","chatbot.py"]
