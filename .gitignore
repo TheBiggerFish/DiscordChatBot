@@ -2,5 +2,7 @@
 .vscode
 **/__pycache__
 chatbot.log
+discordChatBot_TheBiggerFish-1.0.0
 discordChatBot_TheBiggerFish.egg-info
 dist
+build
