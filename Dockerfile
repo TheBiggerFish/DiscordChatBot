@@ -6,4 +6,5 @@ RUN pip install -e .
 RUN echo "Installation finished"
 
 COPY . /chatbot/
-CMD ["python","chatbot.py"]
+WORKDIR /chatbot/
+CMD ["python","src/chatbot/main.py"]

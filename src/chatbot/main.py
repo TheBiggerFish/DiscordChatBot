@@ -14,11 +14,11 @@ import discord
 import yaml
 from dotenv import load_dotenv
 
-from .exceptions import (ChannelLookupException, GuildLookupException,
-                         RoleLookupException)
-from .logging import Logger
-from .server import Server
-from .voiceupdate import VoiceStateUpdate
+from chatbot.exceptions import (ChannelLookupException, GuildLookupException,
+                                RoleLookupException)
+from chatbot.logger import Logger
+from chatbot.server import Server
+from chatbot.voiceupdate import VoiceStateUpdate
 
 client = discord.Client()
 logger: Logger = None
