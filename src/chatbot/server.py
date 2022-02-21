@@ -7,8 +7,7 @@ from typing import Dict, Optional
 import discord
 from dateutil.relativedelta import relativedelta
 
-from .exceptions import (ChannelLookupException, GuildLookupException,
-                         RoleLookupException)
+from . import ChannelLookupException, GuildLookupException, RoleLookupException
 
 
 class Server:
