@@ -7,4 +7,4 @@ RUN echo "Installation finished"
 
 COPY . /chatbot/
 WORKDIR /chatbot/
-CMD ["python","src/chatbot/main.py"]
+CMD ["python","src/main.py"]
