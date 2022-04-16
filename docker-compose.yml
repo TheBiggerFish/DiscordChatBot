@@ -3,6 +3,8 @@ services:
   discord_chatbot:
     image: discord_chatbot
     hostname: $HOSTNAME
+    environment:
+      CONFIG_PATH: /chatbot/config.yml
     build:
       context: .
       dockerfile: Dockerfile
