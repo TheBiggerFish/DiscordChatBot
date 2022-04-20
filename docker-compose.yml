@@ -3,9 +3,4 @@ services:
   discord_chatbot:
     image: discord_chatbot
     hostname: $HOSTNAME
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports: 
-      - 6463-6472
     restart: unless-stopped
